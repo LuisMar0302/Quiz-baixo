@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Campos Harmónicos & Modos — Quiz de Baixo</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1A211C">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Harm. & Modos">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #1A211C;
+    --surface: #232B24;
+    --surface-2: #2B342C;
+    --line: #3B473C;
+    --ink: #EAEFE7;
+    --ink-dim: #A3AC9C;
+    --brass: #86B96C;
+    --brass-dim: #4F6B45;
+    --olive: #3FA34D;
+    --terracotta: #B5533C;
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Work Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 0;
+  }
+
+  #app {
+    width: 100%;
+    max-width: 440px;
+    min-height: 100vh;
+    background: var(--bg);
+    padding: 20px 18px 40px;
+    position: relative;
+  }
+
+  /* ---------- header ---------- */
+  .app-header {
+    margin-bottom: 22px;
+  }
+  .app-header .kicker {
+    font-size: 13px;
+    color: var(--brass);
+    letter-spacing: 0.02em;
+    margin-bottom: 4px;
+  }
+  .app-header h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 26px;
+    line-height: 1.15;
+    margin: 0;
+    color: var(--ink);
+  }
+  .app-header h1 em {
+    font-style: italic;
+    color: var(--brass);
+  }
+
+  /* ---------- staff decoration ---------- */
+  .staff {
+    position: relative;
+    height: 30px;
+    margin: 6px 0 18px;
+    opacity: 0.55;
+  }
+  .staff svg { width: 100%; height: 100%; display: block; }
+  .staff line { stroke: var(--line); stroke-width: 1; }
+
+  /* ---------- start screen ---------- */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 20px;
+  }
+  .lede {
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink-dim);
+    margin: 0 0 20px;
+  }
+  .option-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    margin-bottom: 24px;
+    cursor: pointer;
+  }
+  .option-row input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    border: 2px solid var(--brass-dim);
+    border-radius: 4px;
+    background: var(--surface);
+    margin-top: 1px;
+    position: relative;
+    cursor: pointer;
+  }
+  .option-row input[type="checkbox"]:checked {
+    background: var(--brass);
+    border-color: var(--brass);
+  }
+  .option-row input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 6px;
+    height: 11px;
+    border: solid #1A211C;
+    border-width: 0 2px 2px 0;
+    transform: rotate(40deg);
+  }
+  .option-text strong {
+    display: block;
+    font-size: 15px;
+    margin-bottom: 3px;
+    color: var(--ink);
+  }
+  .option-text span {
+    font-size: 13.5px;
+    color: var(--ink-dim);
+    line-height: 1.45;
+  }
+
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    border-radius: 6px;
+    border: none;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+  }
+  .btn-primary {
+    background: var(--brass);
+    color: #16201A;
+  }
+  .btn-primary:disabled {
+    background: var(--brass-dim);
+    color: #16201A;
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .btn-secondary {
+    background: transparent;
+    color: var(--brass);
+    border: 1px solid var(--brass-dim);
+  }
+
+  /* ---------- seletor de nível ---------- */
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    margin: 0 0 10px;
+  }
+  .level-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 22px;
+  }
+  .level-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--line);
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .level-card .dot {
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--brass-dim);
+    position: relative;
+  }
+  .level-card.active {
+    border-left-color: var(--brass);
+    background: #263127;
+  }
+  .level-card.active .dot {
+    border-color: var(--brass);
+  }
+  .level-card.active .dot::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background: var(--brass);
+  }
+  .level-card .level-text strong {
+    display: block;
+    font-size: 14.5px;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .level-card .level-text span {
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    line-height: 1.4;
+  }
+
+  /* ---------- alternador bemol / sustenido ---------- */
+  .accidental-wrap {
+    margin-bottom: 24px;
+    transition: opacity 0.15s;
+  }
+  .accidental-wrap.disabled-block {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .toggle-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .toggle-pill {
+    text-align: center;
+    padding: 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink-dim);
+    cursor: pointer;
+  }
+  .toggle-pill.active {
+    background: var(--brass);
+    color: #16201A;
+    border-color: var(--brass);
+  }
+  .accidental-note {
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+
+  /* ---------- quiz screen ---------- */
+  .progress-bar-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--ink-dim);
+  }
+  .progress-track {
+    height: 3px;
+    background: var(--line);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--brass);
+  }
+
+  .chord-strip {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 4px 4px 14px;
+    margin-bottom: 4px;
+  }
+  .chord-strip::-webkit-scrollbar { height: 5px; }
+  .chord-strip::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+  .chord-card {
+    flex: 0 0 auto;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--brass-dim);
+    border-radius: 4px;
+    padding: 14px 16px;
+    min-width: 76px;
+    text-align: center;
+  }
+  .chord-card .num {
+    font-size: 11px;
+    color: var(--ink-dim);
+    margin-bottom: 4px;
+  }
+  .chord-card .name {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 600;
+    font-size: 22px;
+    color: var(--ink);
+  }
+
+  .q-block {
+    margin: 20px 0;
+  }
+  .q-block .q-label {
+    font-size: 14.5px;
+    color: var(--ink-dim);
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+  .q-block .q-label b { color: var(--ink); font-weight: 600; }
+
+  .choice-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .choice {
+    padding: 12px 10px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--line);
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+  }
+  .choice.selected {
+    border-left-color: var(--brass);
+    background: #334233;
+  }
+  .choice.correct {
+    border-left-color: var(--olive);
+    background: rgba(124,148,115,0.15);
+    color: var(--olive);
+  }
+  .choice.incorrect {
+    border-left-color: var(--terracotta);
+    background: rgba(181,83,60,0.15);
+    color: var(--terracotta);
+  }
+  .choice.disabled { cursor: default; }
+
+  .explain {
+    margin-top: 20px;
+    padding: 14px 16px;
+    background: var(--surface-2);
+    border-radius: 4px;
+    border-left: 3px solid var(--brass);
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink-dim);
+    display: none;
+  }
+  .explain b { color: var(--ink); }
+  .explain .row { margin-bottom: 4px; }
+
+  .action-row {
+    margin-top: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* ---------- results screen ---------- */
+  .result-score {
+    font-family: var(--font-display);
+    font-size: 52px;
+    font-weight: 700;
+    color: var(--brass);
+    line-height: 1;
+    margin: 6px 0 2px;
+  }
+  .result-score span {
+    font-size: 22px;
+    color: var(--ink-dim);
+    font-weight: 400;
+  }
+  .result-tier {
+    font-size: 15px;
+    color: var(--ink-dim);
+    line-height: 1.55;
+    margin: 14px 0 24px;
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ================= DADOS TEÓRICOS ================= */
+
+const KEYS = [
+  {name:'Dó Maior',  scale:['C','D','E','F','G','A','B'],               type:'natural'},
+  {name:'Sol Maior', scale:['G','A','B','C','D','E','F#'],              type:'sharp'},
+  {name:'Ré Maior',  scale:['D','E','F#','G','A','B','C#'],             type:'sharp'},
+  {name:'Lá Maior',  scale:['A','B','C#','D','E','F#','G#'],            type:'sharp'},
+  {name:'Mi Maior',  scale:['E','F#','G#','A','B','C#','D#'],           type:'sharp'},
+  {name:'Fá Maior',  scale:['F','G','A','B♭','C','D','E'],              type:'flat'},
+  {name:'Sib Maior', scale:['B♭','C','D','E♭','F','G','A'],             type:'flat'},
+  {name:'Mib Maior', scale:['E♭','F','G','A♭','B♭','C','D'],            type:'flat'},
+  {name:'Láb Maior', scale:['A♭','B♭','C','D♭','E♭','F','G'],           type:'flat'},
+  {name:'Réb Maior', scale:['D♭','E♭','F','G♭','A♭','B♭','C'],          type:'flat'},
+];
+
+const FLAT_KEYS = KEYS.filter(k => k.type !== 'sharp');
+const SHARP_KEYS = KEYS.filter(k => k.type !== 'flat');
+
+const LEVELS = [
+  { id:1, name:'Iniciante',   desc:'Tríades maiores, menores e o vii° diminuto. Sequências de 3 acordes.',                         minChords:3, maxChords:3, seventh:false, includeDim:true  },
+  { id:2, name:'Intermédio',  desc:'Tríades maiores, menores e o vii° diminuto. Sequências até 4 acordes.',                        minChords:3, maxChords:4, seventh:false, includeDim:true  },
+  { id:3, name:'Avançado',    desc:'Acordes de 7ª, todos os graus. Sequências até 5 acordes, bemóis e sustenidos misturados.',     minChords:4, maxChords:5, seventh:true,  includeDim:true  },
+  { id:4, name:'Especialista',desc:'Acordes de 7ª, todos os graus. Sequências até 6 acordes, bemóis e sustenidos misturados.',     minChords:5, maxChords:6, seventh:true,  includeDim:true  },
+];
+
+const DEGREES = [
+  {roman:'I',    triadQ:'maj',  seventhQ:'maj7', mode:'Jónio',     function:'Tónica',       formula:'1 2 3 4 5 6 7',        characteristic:'nenhuma alteração — é a própria escala maior', charOffset:6},
+  {roman:'ii',   triadQ:'min',  seventhQ:'min7', mode:'Dórico',    function:'Subdominante', formula:'1 2 ♭3 4 5 6 ♭7',      characteristic:'6ª maior — é o que o distingue do menor natural', charOffset:5},
+  {roman:'iii',  triadQ:'min',  seventhQ:'min7', mode:'Frígio',    function:'Tónica',       formula:'1 ♭2 ♭3 4 5 ♭6 ♭7',    characteristic:'2ª menor (♭9) — a mais escura de todos os modos', charOffset:1},
+  {roman:'IV',   triadQ:'maj',  seventhQ:'maj7', mode:'Lídio',     function:'Subdominante', formula:'1 2 3 ♯4 5 6 7',       characteristic:'4ª aumentada (♯11)', charOffset:3},
+  {roman:'V',    triadQ:'maj',  seventhQ:'7',    mode:'Mixolídio', function:'Dominante',    formula:'1 2 3 4 5 6 ♭7',       characteristic:'7ª menor sobre uma tríade maior', charOffset:6},
+  {roman:'vi',   triadQ:'min',  seventhQ:'min7', mode:'Eólio',     function:'Tónica',       formula:'1 2 ♭3 4 5 ♭6 ♭7',     characteristic:'a escala menor natural', charOffset:5},
+  {roman:'vii°', triadQ:'dim',  seventhQ:'m7b5', mode:'Lócrio',    function:'Dominante',    formula:'1 ♭2 ♭3 4 ♭5 ♭6 ♭7',   characteristic:'5ª diminuta — o único modo com tríade diminuta', charOffset:4},
+];
+
+const SUFFIX = {maj:'', min:'m', dim:'°', maj7:'maj7', min7:'m7', '7':'7', 'm7b5':'m7(♭5)'};
+
+const ALL_MODES = DEGREES.map(d => d.mode);
+
+function buildDeepExplanation(q){
+  const intro = `<div class="row" style="margin-bottom:10px;">Todos os acordes de <b>${q.key.name}</b> partilham exatamente as mesmas 7 notas (${q.key.scale.join(' · ')}). O que muda de acorde para acorde não são as notas disponíveis, mas sim qual delas funciona como centro tonal — daí nascer um modo diferente em cada grau, todos "primos" da mesma escala maior.</div>`;
+  const rows = q.chords.map(c => {
+    const info = DEGREES[c.degreeIdx];
+    const noteName = q.key.scale[(c.degreeIdx + info.charOffset) % 7];
+    return `<div class="row" style="margin-bottom:8px;"><b>${c.chordName}</b> — grau ${c.roman}, função ${info.function}<br>Modo ${c.mode}: ${info.formula}<br>Nota característica: ${info.characteristic} (${noteName})</div>`;
+  }).join('');
+  return intro + rows;
+}
+
+/* ================= UTILITÁRIOS ================= */
+
+function randInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function randChoice(arr){ return arr[randInt(0, arr.length-1)]; }
+function shuffle(arr){
+  const a = arr.slice();
+  for (let i=a.length-1; i>0; i--){
+    const j = randInt(0,i);
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+function pickDistractors(pool, correct, n){
+  const rest = pool.filter(x => x !== correct);
+  return shuffle(rest).slice(0,n);
+}
+
+/* ================= GERAÇÃO DE PERGUNTAS ================= */
+
+function getKeyPool(levelId, accidentalPref){
+  if (levelId <= 2){
+    return accidentalPref === 'bemol' ? FLAT_KEYS : SHARP_KEYS;
+  }
+  return KEYS; // níveis avançado/especialista: mistura bemóis e sustenidos ao acaso
+}
+
+function generateChord(key, level){
+  const allowedIdx = level.includeDim ? [0,1,2,3,4,5,6] : [0,1,2,3,4,5];
+  const degreeIdx = randChoice(allowedIdx);
+  const deg = DEGREES[degreeIdx];
+  const quality = level.seventh ? deg.seventhQ : deg.triadQ;
+  const root = key.scale[degreeIdx];
+  return {
+    degreeIdx,
+    chordName: root + SUFFIX[quality],
+    mode: deg.mode,
+    roman: deg.roman
+  };
+}
+
+function generateQuestion(levelId, accidentalPref){
+  const level = LEVELS[levelId-1];
+  const pool = getKeyPool(levelId, accidentalPref);
+  const key = randChoice(pool);
+  const len = randInt(level.minChords, level.maxChords);
+  const chords = [];
+  let lastIdx = -1;
+  for (let i=0; i<len; i++){
+    let c;
+    let attempts = 0;
+    do { c = generateChord(key, level); attempts++; }
+    while (c.degreeIdx === lastIdx && attempts < 8);
+    lastIdx = c.degreeIdx;
+    chords.push(c);
+  }
+
+  const keyOptions = shuffle([key.name, ...pickDistractors(KEYS.map(k=>k.name), key.name, 3)]);
+  const chordsWithOptions = chords.map(c => ({
+    ...c,
+    options: shuffle([c.mode, ...pickDistractors(ALL_MODES, c.mode, 3)])
+  }));
+
+  return { key, level, chords: chordsWithOptions, keyOptions };
+}
+
+/* ================= ESTADO ================= */
+
+let questions = [];
+let currentIndex = 0;
+let score = { correct: 0, total: 0 };
+let selections = {}; // { field: 'keyname', chord0: 'mode', chord1: 'mode', ... }
+let confirmed = false;
+let selectedLevel = 1;
+let selectedAccidental = 'sustenido';
+
+/* ================= RENDER: ECRÃ INICIAL ================= */
+
+function renderStart(){
+  const app = document.getElementById('app');
+
+  const levelCardsHtml = LEVELS.map(lv => `
+    <div class="level-card ${lv.id===selectedLevel?'active':''}" data-level="${lv.id}">
+      <div class="dot"></div>
+      <div class="level-text">
+        <strong>${lv.name}</strong>
+        <span>${lv.desc}</span>
+      </div>
+    </div>
+  `).join('');
+
+  const accidentalDisabled = selectedLevel >= 3;
+
+  app.innerHTML = `
+    <div class="app-header">
+      <div class="kicker">Prática de teoria — baixo elétrico</div>
+      <h1>Campos harmónicos<br>e <em>modos</em></h1>
+    </div>
+    <div class="staff">
+      <svg viewBox="0 0 400 30" preserveAspectRatio="none">
+        <line x1="0" y1="3" x2="400" y2="3"></line>
+        <line x1="0" y1="9" x2="400" y2="9"></line>
+        <line x1="0" y1="15" x2="400" y2="15"></line>
+        <line x1="0" y1="21" x2="400" y2="21"></line>
+        <line x1="0" y1="27" x2="400" y2="27"></line>
+      </svg>
+    </div>
+    <div class="card">
+      <p class="lede">Vais ver sequências de acordes. Para cada uma, identifica o campo harmónico (o tom) e o modo grego correspondente a cada acorde. São geradas 30 perguntas novas de cada vez que começas.</p>
+
+      <div class="section-title">Nível</div>
+      <div class="level-grid" id="levelGrid">${levelCardsHtml}</div>
+
+      <div class="accidental-wrap ${accidentalDisabled?'disabled-block':''}" id="accidentalWrap">
+        <div class="section-title">Bemol ou sustenido</div>
+        <div class="toggle-pair">
+          <div class="toggle-pill ${selectedAccidental==='bemol'?'active':''}" data-acc="bemol">Bemol (♭)</div>
+          <div class="toggle-pill ${selectedAccidental==='sustenido'?'active':''}" data-acc="sustenido">Sustenido (♯)</div>
+        </div>
+        <p class="accidental-note">Só se aplica aos níveis Iniciante e Intermédio. No Avançado e Especialista aparecem bemóis e sustenidos misturados ao acaso.</p>
+      </div>
+
+      <button class="btn btn-primary" id="startBtn">Começar (30 perguntas)</button>
+    </div>
+  `;
+
+  document.querySelectorAll('.level-card').forEach(el => {
+    el.addEventListener('click', () => {
+      selectedLevel = parseInt(el.dataset.level, 10);
+      renderStart();
+    });
+  });
+
+  document.querySelectorAll('.toggle-pill').forEach(el => {
+    el.addEventListener('click', () => {
+      if (selectedLevel >= 3) return;
+      selectedAccidental = el.dataset.acc;
+      renderStart();
+    });
+  });
+
+  document.getElementById('startBtn').addEventListener('click', () => {
+    questions = Array.from({length:30}, () => generateQuestion(selectedLevel, selectedAccidental));
+    currentIndex = 0;
+    score = { correct: 0, total: 0 };
+    renderQuestion();
+  });
+}
+
+/* ================= RENDER: PERGUNTA ================= */
+
+function renderQuestion(){
+  confirmed = false;
+  selections = {};
+  const q = questions[currentIndex];
+  const app = document.getElementById('app');
+  const pct = Math.round((currentIndex/30)*100);
+
+  const chordStripHtml = q.chords.map((c,i) => `
+    <div class="chord-card">
+      <div class="num">${i+1}</div>
+      <div class="name">${c.chordName}</div>
+    </div>
+  `).join('');
+
+  const keyChoicesHtml = q.keyOptions.map(opt => `
+    <div class="choice" data-group="field" data-value="${opt}">${opt}</div>
+  `).join('');
+
+  const chordBlocksHtml = q.chords.map((c,i) => `
+    <div class="q-block">
+      <div class="q-label">Acorde <b>${i+1} — ${c.chordName}</b>: qual o modo?</div>
+      <div class="choice-grid">
+        ${c.options.map(opt => `<div class="choice" data-group="chord${i}" data-value="${opt}">${opt}</div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  app.innerHTML = `
+    <div class="progress-bar-row">
+      <span>Pergunta ${currentIndex+1} de 30 · ${q.level.name}</span>
+      <span>Pontuação: ${score.correct}/${score.total}</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+
+    <div class="chord-strip">${chordStripHtml}</div>
+
+    <div class="q-block">
+      <div class="q-label">Qual o <b>campo harmónico</b> desta sequência?</div>
+      <div class="choice-grid">${keyChoicesHtml}</div>
+    </div>
+
+    ${chordBlocksHtml}
+
+    <div class="explain" id="explainBox"></div>
+    <div class="explain" id="deepBox" style="display:none;"></div>
+
+    <div class="action-row">
+      <button class="btn btn-secondary hidden" id="deepBtn">Ver explicação teórica aprofundada</button>
+      <button class="btn btn-primary" id="confirmBtn" disabled>Confirmar respostas</button>
+    </div>
+  `;
+
+  attachChoiceHandlers(q);
+}
+
+function attachChoiceHandlers(q){
+  const groups = ['field', ...q.chords.map((_,i)=>'chord'+i)];
+
+  document.querySelectorAll('.choice').forEach(el => {
+    el.addEventListener('click', () => {
+      if (confirmed) return;
+      const group = el.dataset.group;
+      document.querySelectorAll(`.choice[data-group="${group}"]`).forEach(e => e.classList.remove('selected'));
+      el.classList.add('selected');
+      selections[group] = el.dataset.value;
+      updateConfirmState(groups);
+    });
+  });
+
+  document.getElementById('confirmBtn').addEventListener('click', () => confirmQuestion(q, groups));
+}
+
+function updateConfirmState(groups){
+  const allAnswered = groups.every(g => selections[g] !== undefined);
+  document.getElementById('confirmBtn').disabled = !allAnswered;
+}
+
+function confirmQuestion(q, groups){
+  confirmed = true;
+  let correctCount = 0;
+
+  // campo harmónico
+  const fieldCorrect = selections.field === q.key.name;
+  markGroup('field', q.key.name, fieldCorrect);
+  if (fieldCorrect) correctCount++;
+
+  // modos
+  q.chords.forEach((c,i) => {
+    const grp = 'chord'+i;
+    const ok = selections[grp] === c.mode;
+    markGroup(grp, c.mode, ok);
+    if (ok) correctCount++;
+  });
+
+  score.total += groups.length;
+  score.correct += correctCount;
+
+  document.querySelectorAll('.choice').forEach(el => el.classList.add('disabled'));
+
+  const explainRows = [
+    `<div class="row"><b>${q.key.name}:</b> ${q.key.scale.join(' · ')}</div>`,
+    ...q.chords.map((c,i) => `<div class="row"><b>${c.chordName}</b> (grau ${c.roman}) → modo <b>${c.mode}</b></div>`)
+  ].join('');
+  const explainBox = document.getElementById('explainBox');
+  explainBox.innerHTML = explainRows;
+  explainBox.style.display = 'block';
+
+  const deepBox = document.getElementById('deepBox');
+  deepBox.innerHTML = buildDeepExplanation(q);
+  deepBox.style.display = 'none';
+
+  const deepBtn = document.getElementById('deepBtn');
+  deepBtn.classList.remove('hidden');
+  deepBtn.textContent = 'Ver explicação teórica aprofundada';
+  deepBtn.onclick = () => {
+    const isHidden = deepBox.style.display === 'none';
+    deepBox.style.display = isHidden ? 'block' : 'none';
+    deepBtn.textContent = isHidden ? 'Ocultar explicação aprofundada' : 'Ver explicação teórica aprofundada';
+  };
+
+  const btn = document.getElementById('confirmBtn');
+  btn.textContent = currentIndex < 29 ? 'Pergunta seguinte' : 'Ver resultado final';
+  btn.disabled = false;
+  btn.onclick = () => {
+    if (currentIndex < 29){
+      currentIndex++;
+      renderQuestion();
+    } else {
+      renderResults();
+    }
+  };
+
+  document.querySelectorAll('.progress-bar-row span')[1].textContent = `Pontuação: ${score.correct}/${score.total}`;
+}
+
+function markGroup(group, correctValue, wasCorrect){
+  document.querySelectorAll(`.choice[data-group="${group}"]`).forEach(el => {
+    if (el.dataset.value === correctValue){
+      el.classList.add('correct');
+    } else if (el.classList.contains('selected') && !wasCorrect){
+      el.classList.add('incorrect');
+    }
+  });
+}
+
+/* ================= RENDER: RESULTADOS ================= */
+
+function renderResults(){
+  const app = document.getElementById('app');
+  const pct = score.total ? Math.round((score.correct/score.total)*100) : 0;
+
+  let tier;
+  if (pct >= 90) tier = 'Excelente. Estás a ler campos harmónicos e a associar modos quase de forma automática — se ainda não estás no nível Especialista, é boa altura para subir.';
+  else if (pct >= 70) tier = 'Muito bom. A relação entre grau e modo já está sólida; repete o quiz no nível seguinte para afinar os casos mais difíceis (vii° e os acordes de 7ª).';
+  else if (pct >= 50) tier = 'Caminho certo. Revê a ordem dos modos a partir do campo maior (Jónio, Dórico, Frígio, Lídio, Mixolídio, Eólio, Lócrio) e repete o quiz — a memorização vem com repetição.';
+  else tier = 'Vale a pena voltar à base: para cada grau do campo maior existe sempre o mesmo modo. Repete o quiz no nível Iniciante até estares confortável antes de subir de nível.';
+
+  app.innerHTML = `
+    <div class="app-header">
+      <div class="kicker">Resultado final</div>
+      <h1>Fim do <em>quiz</em></h1>
+    </div>
+    <div class="card">
+      <div class="result-score">${score.correct}<span>/${score.total} respostas certas · ${pct}%</span></div>
+      <p class="result-tier">${tier}</p>
+      <button class="btn btn-primary" id="restartBtn">Novo quiz</button>
+    </div>
+  `;
+  document.getElementById('restartBtn').addEventListener('click', renderStart);
+}
+
+/* ================= INÍCIO ================= */
+
+renderStart();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
