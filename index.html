@@ -301,6 +301,18 @@
     background: var(--brass);
   }
 
+  .song-tag {
+    display: inline-block;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--brass);
+    background: var(--surface-2);
+    border: 1px solid var(--brass-dim);
+    border-radius: 20px;
+    padding: 5px 12px;
+    margin-bottom: 10px;
+  }
+
   .chord-strip {
     display: flex;
     gap: 10px;
@@ -465,14 +477,73 @@ const SUFFIX = {maj:'', min:'m', dim:'°', maj7:'maj7', min7:'m7', '7':'7', 'm7b
 
 const ALL_MODES = DEGREES.map(d => d.mode);
 
+/* Progressões reais, verificadas em cifras/lead sheets — apenas trechos puramente
+   diatónicos (sem acordes emprestados nem dominantes secundárias), para que a
+   análise de campo harmónico e modos faça sentido. */
+const SONGS = [
+  { title:'Twist and Shout',        artist:'The Beatles',    keyName:'Ré Maior',  degrees:[0,3,4],           seventh:false, level:1 },
+  { title:'La Bamba',               artist:'Ritchie Valens', keyName:'Dó Maior',  degrees:[0,3,4],           seventh:false, level:1 },
+  { title:'Wild Thing',             artist:'The Troggs',     keyName:'Lá Maior',  degrees:[0,3,4],           seventh:false, level:1 },
+
+  { title:'Let It Be',              artist:'The Beatles',    keyName:'Dó Maior',  degrees:[0,4,5,3],         seventh:false, level:2 },
+  { title:'Stand By Me',            artist:'Ben E. King',    keyName:'Dó Maior',  degrees:[0,5,3,4],         seventh:false, level:2 },
+  { title:'With or Without You',    artist:'U2',             keyName:'Ré Maior',  degrees:[0,4,5,3],         seventh:false, level:2 },
+  { title:'No Woman, No Cry',       artist:'Bob Marley',     keyName:'Dó Maior',  degrees:[0,4,5,3],         seventh:false, level:2 },
+  { title:"Don't Stop Believin'",   artist:'Journey',        keyName:'Mi Maior',  degrees:[0,4,5,3],         seventh:false, level:2 },
+
+  { title:'Fly Me to the Moon',     artist:'Frank Sinatra',  keyName:'Dó Maior',  degrees:[5,1,4,0],         seventh:true,  level:3 },
+  { title:'Autumn Leaves',          artist:'standard de jazz (Kosma)', keyName:'Sib Maior', degrees:[1,4,0,3], seventh:true, level:3 },
+
+  { title:'Fly Me to the Moon (excerto alargado)', artist:'Frank Sinatra', keyName:'Dó Maior', degrees:[5,1,4,0,3,6], seventh:true, level:4 },
+];
+
+function buildSongChord(key, degreeIdx, seventh){
+  const deg = DEGREES[degreeIdx];
+  const quality = seventh ? deg.seventhQ : deg.triadQ;
+  const root = key.scale[degreeIdx];
+  return {
+    degreeIdx,
+    chordName: root + SUFFIX[quality],
+    mode: deg.mode,
+    roman: deg.roman
+  };
+}
+
+function generateSongQuestion(levelId, song){
+  const level = LEVELS[levelId-1];
+  const key = KEYS.find(k => k.name === song.keyName);
+  const chords = song.degrees.map(d => buildSongChord(key, d, song.seventh));
+
+  const keyOptions = shuffle([key.name, ...pickDistractors(KEYS.map(k=>k.name), key.name, 3)]);
+  const chordsWithOptions = chords.map(c => ({
+    ...c,
+    options: shuffle([c.mode, ...pickDistractors(ALL_MODES, c.mode, 3)])
+  }));
+
+  return { key, level, chords: chordsWithOptions, keyOptions, song };
+}
+
+function buildSongQuestionPool(levelId, count){
+  const pool = SONGS.filter(s => s.level === levelId);
+  const out = [];
+  while (out.length < count){
+    for (const s of shuffle(pool)){
+      if (out.length >= count) break;
+      out.push(generateSongQuestion(levelId, s));
+    }
+  }
+  return out;
+}
+
 function buildDeepExplanation(q){
+  const songLine = q.song ? `<div class="row" style="margin-bottom:10px;">Este trecho vem de <b>${q.song.title}</b> (${q.song.artist}), na tonalidade original.</div>` : '';
   const intro = `<div class="row" style="margin-bottom:10px;">Todos os acordes de <b>${q.key.name}</b> partilham exatamente as mesmas 7 notas (${q.key.scale.join(' · ')}). O que muda de acorde para acorde não são as notas disponíveis, mas sim qual delas funciona como centro tonal — daí nascer um modo diferente em cada grau, todos "primos" da mesma escala maior.</div>`;
   const rows = q.chords.map(c => {
     const info = DEGREES[c.degreeIdx];
     const noteName = q.key.scale[(c.degreeIdx + info.charOffset) % 7];
     return `<div class="row" style="margin-bottom:8px;"><b>${c.chordName}</b> — grau ${c.roman}, função ${info.function}<br>Modo ${c.mode}: ${info.formula}<br>Nota característica: ${info.characteristic} (${noteName})</div>`;
   }).join('');
-  return intro + rows;
+  return songLine + intro + rows;
 }
 
 /* ================= UTILITÁRIOS ================= */
@@ -549,6 +620,7 @@ let selections = {}; // { field: 'keyname', chord0: 'mode', chord1: 'mode', ... 
 let confirmed = false;
 let selectedLevel = 1;
 let selectedAccidental = 'sustenido';
+let quizMode = 'random'; // 'random' | 'songs'
 
 /* ================= RENDER: ECRÃ INICIAL ================= */
 
@@ -565,7 +637,8 @@ function renderStart(){
     </div>
   `).join('');
 
-  const accidentalDisabled = selectedLevel >= 3;
+  const accidentalDisabled = selectedLevel >= 3 || quizMode === 'songs';
+  const songsAvailable = SONGS.filter(s => s.level === selectedLevel).length;
 
   app.innerHTML = `
     <div class="app-header">
@@ -584,8 +657,16 @@ function renderStart(){
     <div class="card">
       <p class="lede">Vais ver sequências de acordes. Para cada uma, identifica o campo harmónico (o tom) e o modo grego correspondente a cada acorde. São geradas 30 perguntas novas de cada vez que começas.</p>
 
+      <div class="section-title">Modo</div>
+      <div class="toggle-pair" style="margin-bottom:22px;">
+        <div class="toggle-pill mode-pill ${quizMode==='random'?'active':''}" data-mode="random">Aleatório</div>
+        <div class="toggle-pill mode-pill ${quizMode==='songs'?'active':''}" data-mode="songs">Músicas conhecidas</div>
+      </div>
+
       <div class="section-title">Nível</div>
       <div class="level-grid" id="levelGrid">${levelCardsHtml}</div>
+
+      ${quizMode==='songs' ? `<p class="accidental-note" style="margin:-10px 0 22px;">Usa progressões reais de músicas conhecidas (pop, rock e alguns standards de jazz), mantendo a tonalidade e a grafia originais. Biblioteca atual neste nível: ${songsAvailable} música${songsAvailable===1?'':'s'} — vão repetir-se ao longo das 30 perguntas.</p>` : ''}
 
       <div class="accidental-wrap ${accidentalDisabled?'disabled-block':''}" id="accidentalWrap">
         <div class="section-title">Bemol ou sustenido</div>
@@ -593,12 +674,19 @@ function renderStart(){
           <div class="toggle-pill ${selectedAccidental==='bemol'?'active':''}" data-acc="bemol">Bemol (♭)</div>
           <div class="toggle-pill ${selectedAccidental==='sustenido'?'active':''}" data-acc="sustenido">Sustenido (♯)</div>
         </div>
-        <p class="accidental-note">Só se aplica aos níveis Iniciante e Intermédio. No Avançado e Especialista aparecem bemóis e sustenidos misturados ao acaso.</p>
+        <p class="accidental-note">Só se aplica ao modo Aleatório, nos níveis Iniciante e Intermédio. No Avançado, Especialista e no modo Músicas conhecidas aparecem bemóis e sustenidos conforme o caso real.</p>
       </div>
 
       <button class="btn btn-primary" id="startBtn">Começar (30 perguntas)</button>
     </div>
   `;
+
+  document.querySelectorAll('.mode-pill').forEach(el => {
+    el.addEventListener('click', () => {
+      quizMode = el.dataset.mode;
+      renderStart();
+    });
+  });
 
   document.querySelectorAll('.level-card').forEach(el => {
     el.addEventListener('click', () => {
@@ -607,16 +695,18 @@ function renderStart(){
     });
   });
 
-  document.querySelectorAll('.toggle-pill').forEach(el => {
+  document.querySelectorAll('.toggle-pill[data-acc]').forEach(el => {
     el.addEventListener('click', () => {
-      if (selectedLevel >= 3) return;
+      if (accidentalDisabled) return;
       selectedAccidental = el.dataset.acc;
       renderStart();
     });
   });
 
   document.getElementById('startBtn').addEventListener('click', () => {
-    questions = Array.from({length:30}, () => generateQuestion(selectedLevel, selectedAccidental));
+    questions = quizMode === 'songs'
+      ? buildSongQuestionPool(selectedLevel, 30)
+      : Array.from({length:30}, () => generateQuestion(selectedLevel, selectedAccidental));
     currentIndex = 0;
     score = { correct: 0, total: 0 };
     renderQuestion();
@@ -659,6 +749,7 @@ function renderQuestion(){
     </div>
     <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
 
+    ${q.song ? `<div class="song-tag">🎵 ${q.song.title} — ${q.song.artist}</div>` : ''}
     <div class="chord-strip">${chordStripHtml}</div>
 
     <div class="q-block">
